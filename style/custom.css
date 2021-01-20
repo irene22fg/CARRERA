@@ -1,0 +1,26 @@
+body{
+    padding:15px;
+}
+.pista{
+    border:solid 2px;
+    width: 750px;
+    height: 100px;
+    padding-left: 10px;
+}
+img{
+    width: 80px;
+    height: 80px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    margin-right: 10px;
+}
+button{
+    margin-top: 15px;
+    margin-left: 15px;
+}
+table, thead, tbody, td, th{
+    text-align: center;
+    border: solid 1px;
+    border-collapse: collapse;
+    margin-top: 1em;
+}
