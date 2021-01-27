@@ -31,11 +31,11 @@ const liebre = {
     },
     normal: {
         min: 46,
-        max: 79,
+        max: 80,
         mueve: 10
     },
     dificultad: {
-        min: 80,
+        min: 81,
         max: 100,
         mueve: -20
     }
@@ -146,10 +146,11 @@ function getParticipantes() {      //Saco el número de participantes y los alma
 }
 
 const zonaCarrera = document.getElementsByClassName("carrera")[0];    //zona html para la carrera
+const tabla = document.getElementById("tabla");
 
 function crearCarrera() {    //creo la pista con los animales en su posición indicada
     participantesSet = getParticipantes();
-    borrarNodo();
+    borrarNodo(zonaCarrera);
     participantesSet.forEach(participante => {   //creo los carriles para los animales correspondientes
         let pista = crearNodo("div", "", ["pista"], []);
         pista.appendChild(crearNodo("img", "", [], [{ name: "src", value: "./img/" + participante.img }, { name: "id", value: participante.nombre }]));
@@ -157,12 +158,41 @@ function crearCarrera() {    //creo la pista con los animales en su posición in
         document.getElementById(participante.nombre).style.marginLeft = participante.casilla + 'px';
         movimientos[participante.nombre].push({ tipo: 'salida', valor: participante.casilla });
     });
+    crearTabla();
 }
 
-function borrarNodo() {
-    let divCarrera = zonaCarrera
-    while (divCarrera.firstChild) {
-        divCarrera.removeChild(divCarrera.firstChild);
+function crearTabla(){
+    borrarNodo(tabla);
+    let thead = crearNodo("thead", "", [], []);
+    let tbody = crearNodo("tbody", "", [], []);
+    let trCabecera = crearNodo("tr","", [], []);
+    trCabecera.appendChild(crearNodo("th", "TURNO", [], []));
+    thead.appendChild(trCabecera);
+    participantesSet.forEach(participante => {
+        trCabecera.appendChild(crearNodo("th", participante.nombre, [], []));
+    });
+    tabla.appendChild(thead);
+    let trSalida = crearNodo("tr", "", [], []);
+    trSalida.appendChild(crearNodo("td", "1", [], []));
+    tbody.appendChild(trSalida);
+    participantesSet.forEach(participante => {
+        trSalida.appendChild(crearNodo("td", movimientos[participante.nombre][0].tipo + ": " + movimientos[participante.nombre][0].valor, [], []));
+    });
+    tabla.appendChild(tbody);
+}
+
+function addMovsTabla(movimientos){
+    let tbody = document.body.children[6].lastElementChild;
+    let tr = crearNodo("tr", "", [], []);
+    tr.appendChild(crearNodo("td", movimientos.length, [], []));
+    tbody.appendChild(tr);
+    tr.appendChild(crearNodo("td", movimientos[movimientos.length-1].tipo + ": " + movimientos[movimientos.length-1].valor, [], []));
+}
+
+function borrarNodo(div) {
+    let nodoBorrar = div;
+    while (nodoBorrar.firstChild) {
+        nodoBorrar.removeChild(nodoBorrar.firstChild);
     }
 }
 
@@ -214,6 +244,7 @@ function turno() {
                     movimientos[participante.nombre].push({ tipo: 'dificultad', valor: participante.dificultad.mueve });
                     document.getElementById(participante.nombre).style.marginLeft = participante.dificultad.mueve * 3 + total + 'px';
                 }
+                addMovsTabla(movimientos[participante.nombre]);
             }
         });
     }
