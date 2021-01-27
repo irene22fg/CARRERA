@@ -31,11 +31,11 @@ const liebre = {
     },
     normal: {
         min: 46,
-        max: 80,
+        max: 79,
         mueve: 10
     },
     dificultad: {
-        min: 81,
+        min: 80,
         max: 100,
         mueve: -20
     }
@@ -157,7 +157,6 @@ function crearCarrera() {    //creo la pista con los animales en su posición in
         document.getElementById(participante.nombre).style.marginLeft = participante.casilla + 'px';
         movimientos[participante.nombre].push({ tipo: 'salida', valor: participante.casilla });
     });
-    document.getElementById("bSubmit").setAttribute(atributo="disabled", atributo="true");
 }
 
 function borrarNodo() {
@@ -181,22 +180,27 @@ function crearNodo(tipo, texto, clases, atributos) {     //función CREAR NODO
     return nodo;
 }
 
-function calculaTotalMovs(movimientos) {    //función para hayar el total de casillas
+
+function calculaTotalMovs(movimientos) {
     let suma = 0;
+    let arr = [];
     let i = 0;
     while(i<movimientos.length){
-        suma += movimientos[i].valor
+        arr.push(movimientos[i].valor);
         i++;
     }
+    suma = arr.reduce(function (acumulador, avance) {
+        return (acumulador + avance) < 0 ? 0 : acumulador + avance;
+    }, 0);
     return suma;
 }
-
+let terminado;
 function turno() {
-    let terminado = comprobarCarrera();
+    terminado = comprobarCarrera();
     if(terminado != true){
         participantesSet.forEach(participante => {
             let total = calculaTotalMovs(movimientos[participante.nombre]);
-            if (total < nCasillas && total >= 0) {    
+            if (total < nCasillas) {    
                 let num = randomMovimiento();
                 if (num < (participante.ventaja.min + participante.ventaja.max)) {
                     movimientos[participante.nombre].push({ tipo: 'ventaja', valor: participante.ventaja.mueve });
@@ -211,13 +215,7 @@ function turno() {
                     document.getElementById(participante.nombre).style.marginLeft = participante.dificultad.mueve * 3 + total + 'px';
                 }
             }
-            else{
-                terminado = true;
-            }
         });
-    }
-    else{
-        document.getElementById("bSubmit").setAttribute(atributo="disabled", atributo="false");
     }
 }
 
@@ -225,7 +223,7 @@ function comprobarCarrera(){
     let todos = 0;
     participantesSet.forEach(participante => {
         let total = calculaTotalMovs(movimientos[participante.nombre]);
-        if(total >= 750){
+        if(total >= nCasillas){
             todos++;
         }
     });
@@ -238,6 +236,7 @@ function comprobarCarrera(){
 }
 
 function completo() {
+    terminado = comprobarCarrera();
     while(terminado != true){
         turno();
     }
