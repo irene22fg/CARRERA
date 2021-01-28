@@ -149,6 +149,8 @@ const tabla = document.getElementById("tabla");
 const podio = document.getElementById("podio");
 
 function crearCarrera() {    //creo la pista con los animales en su posición indicada
+    document.getElementById("finalizar").disabled=false;
+    document.getElementById("paso").disabled=false;
     participantesSet = getParticipantes();
     borrarNodo(zonaCarrera);
     participantesSet.forEach(participante => {   //creo los carriles para los animales correspondientes
@@ -161,11 +163,12 @@ function crearCarrera() {    //creo la pista con los animales en su posición in
     crearTabla();
 }
 
-function crearTabla(){    //Creamos la tabla con la estructura principal y añadimos la casilla de salida si la hubiera
+function crearTabla() {    //Creamos la tabla con la estructura principal y añadimos la casilla de salida si la hubiera
     borrarNodo(tabla);
+    borrarNodo(podio);
     let thead = crearNodo("thead", "", [], []);
     let tbody = crearNodo("tbody", "", [], []);
-    let trCabecera = crearNodo("tr","", [], []);
+    let trCabecera = crearNodo("tr", "", [], []);
     trCabecera.appendChild(crearNodo("th", "TURNO", [], []));
     thead.appendChild(trCabecera);
     participantesSet.forEach(participante => {
@@ -182,13 +185,13 @@ function crearTabla(){    //Creamos la tabla con la estructura principal y añad
 }
 
 let turnoTabla = 0;
-function addMovsTabla(movimientos){    //Añadimos los movimientos de este turno a la tabla
+function addMovsTabla(movimientos) {    //Añadimos los movimientos de este turno a la tabla
     turnoTabla++;
     let tbody = document.body.children[7].lastElementChild;
     let tr = crearNodo("tr", "", [], []);
     tr.appendChild(crearNodo("td", turnoTabla, [], []));
     movimientos.forEach(mov => {
-        tr.appendChild(crearNodo("td", mov.tipo + ": " + mov.valor, [], [])); 
+        tr.appendChild(crearNodo("td", mov.tipo + ": " + mov.valor, [], []));
     });
     tbody.appendChild(tr);
 }
@@ -218,7 +221,7 @@ function calculaTotalMovs(movimientos) {
     let suma = 0;
     let arr = [];
     let i = 0;
-    while(i<movimientos.length){   //creamos un array para almacerar los movimientos, ya que es un objeto
+    while (i < movimientos.length) {   //creamos un array para almacerar los movimientos, ya que es un objeto
         arr.push(movimientos[i].valor);
         i++;
     }
@@ -231,11 +234,11 @@ function calculaTotalMovs(movimientos) {
 let terminado;
 function turno() {   //Turno paso a paso
     terminado = comprobarCarrera();
-    if(terminado != true){
+    if (terminado != true) {
         let movsTurno = [];
         participantesSet.forEach(participante => {
             let total = calculaTotalMovs(movimientos[participante.nombre]);
-            if (total < nCasillas) {    
+            if (total < nCasillas) {
                 let num = randomMovimiento();
                 if (num < (participante.ventaja.min + participante.ventaja.max)) {
                     movimientos[participante.nombre].push({ tipo: 'ventaja', valor: participante.ventaja.mueve });
@@ -247,56 +250,69 @@ function turno() {   //Turno paso a paso
                     movsTurno.push({ tipo: 'normal', valor: participante.normal.mueve });
                     document.getElementById(participante.nombre).style.marginLeft = participante.normal.mueve * 3 + total + 'px';
                 }
-                else if(total - (participante.dificultad.mueve * 3) > 0){
+                else if (total - (participante.dificultad.mueve * 3) > 0) {
                     movimientos[participante.nombre].push({ tipo: 'dificultad', valor: participante.dificultad.mueve });
                     movsTurno.push({ tipo: 'dificultad', valor: participante.dificultad.mueve });
                     document.getElementById(participante.nombre).style.marginLeft = participante.dificultad.mueve * 3 + total + 'px';
                 }
+            }
+            else{
+                movsTurno.push({tipo: 'termina', valor: '0'});
             }
         });
         addMovsTabla(movsTurno)  //Pasamos los movimientos de este turno
     }
 }
 
-function comprobarCarrera(){    //Comprueba si todos los participantes estan en la meta
+function comprobarCarrera() {    //Comprueba si todos los participantes estan en la meta
     let todos = 0;
     participantesSet.forEach(participante => {
         let total = calculaTotalMovs(movimientos[participante.nombre]);
-        if(total >= nCasillas){
+        if (total >= nCasillas) {
             todos++;
         }
     });
-    if(todos == participantesSet.length){
+    if (todos == participantesSet.length) {
         mostrarPodio();
+        document.getElementById("finalizar").disabled=true;
+        document.getElementById("paso").disabled=true;
+        turnoTabla = 0;   //igualamos a 0 cuando termina la carrera para que se "resetee"
         return true;
     }
-    else{
+    else {
         return false;
     }
 }
 
 function completo() {    //Hace Paso a Paso mientras no estén todos en la meta
     terminado = comprobarCarrera();
-    while(terminado != true){
+    while (terminado != true) {
         turno();
     }
 }
 
-function mostrarPodio(){
-    if(comprobarCarrera){
-        let movsTotales = []
-        let i = 0;
-        debugger
-        participantesSet.forEach(participante => {
-            movsTotales.push(movimientos[participante.nombre].length);
-            podio.appendChild(crearNodo("p", movsTotales[i], [], []));
-            i++;
-        });
+function mostrarPodio() {
+    let movsTotales = [];
+    let i = 0;
+    participantesSet.forEach(participante => {    //cuento los turnos de cada uno
+        movsTotales.push(movimientos[participante.nombre].length);
+        i++;
+    });
+    let arrayMovsTotales = movsTotales.slice();  //copio los valore sin ordenar
+    movsTotales.sort(function(a,b){return a-b});   //Ordenolos valores
+    let orden = [];
+    for(let i = 0; i<movsTotales.length; i++){    //almaceno el nombre por valores ordenados
+        for(let j = 0; j<arrayMovsTotales.length; j++){
+            if(movsTotales[i] == arrayMovsTotales[j]){
+                orden.push(participantesSet[j].nombre);
+            }
+        }
     }
-    else{
-        console.log("Hubo un error");
-    }
-
+    let j = 1;
+    orden.forEach(animal => {  //Muestro el podio
+        podio.appendChild(crearNodo("p", j + "º " + animal + ": " + movsTotales[j-1] + " turnos", [], []));
+        j++;
+    });
 }
 
 document.getElementById("paso").addEventListener('click', turno);
